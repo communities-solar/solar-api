@@ -21,7 +21,7 @@ SECRET_NAME = os.environ.get("SECRET_NAME")
 # Configure AWS resources
 dynamodb_resource = boto3.resource("dynamodb")
 table = dynamodb_resource.Table(TABLE_NAME)
-rds_secret = parameters.get_secret(SECRET_NAME)
+rds_secret = json.loads(parameters.get_secret(SECRET_NAME))
 
 # Load RDS connector
 mydb = mysql.connector.connect(
