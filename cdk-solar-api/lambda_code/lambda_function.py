@@ -71,15 +71,14 @@ def read_lead_from_id(event, lead_id):
         else:
             json_response = {
                 "message": "There was not a match for the query.",
-                "details": "Server unable to read request"}
+                "details": "Server unable to get request due to wrong query (lead_id)."}
         print("json_response is: ", json_response)
-
-        cursor.close()
-        mydb.close()
 
         return get_return_format(200, json.dumps(json_response, indent=2, default=str))
     except mysql.connector.Error as e:
-        print("Error reading data from MySQL table: ", e)
+        error_message = "Error reading data from MySQL table: ", e
+        print(error_message)
+        return get_return_format(400, json.dumps(error_message, indent=2, default=str))
 
 
 def create_lead(event):
@@ -112,7 +111,7 @@ def lambda_handler(event, context):
 
     # If a validation fails, return usage explanation message (how to call API)
     return_usage_dict = {
-                "instructions": "Please call this endpoint as the <type_usage> indicates...",
-                "read_usage": "?username=<username>&password=<password>&supplier_id=<supplier_id>&lead_id=<lead_id>&agent_id=<agent_id>",
+        "instructions": "Please call this endpoint as the <type_usage> indicates...",
+        "read_usage": "?username=<username>&password=<password>&supplier_id=<supplier_id>&lead_id=<lead_id>&agent_id=<agent_id>",
     }
-    return get_return_format(200, return_usage_dict)
+    return get_return_format(200, json.dumps(return_usage_dict, indent=2, default=str))

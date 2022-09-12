@@ -58,6 +58,10 @@ pip install -r requirements.txt || pip3 install -r requirements.txt
 
 cdk bootstrap
 
+# Setup environment (choose one)
+export ENVIRONMENT="dev"
+export ENVIRONMENT="prod"
+
 # Storage Stack DynamoDB
 cdk synthesize --app "python3 app_storage_dynamodb.py"
 cdk diff --app "python3 app_storage_dynamodb.py"

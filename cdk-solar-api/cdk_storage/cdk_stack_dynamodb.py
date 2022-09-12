@@ -42,9 +42,10 @@ class CdkStackStorageDynamoDB(Stack):
             self,
             id="{}-Table".format(self.construct_id),
             table_name="{}{}-Table".format(self.name_prefix, self.main_resources_name),
-            read_capacity=1,
-            write_capacity=1,
-            partition_key=aws_dynamodb.Attribute(name="lead_id", type=aws_dynamodb.AttributeType.STRING),
+            read_capacity=5,
+            write_capacity=5,
+            partition_key=aws_dynamodb.Attribute(name="record_id", type=aws_dynamodb.AttributeType.STRING),
+            sort_key=aws_dynamodb.Attribute(name="timestamp", type=aws_dynamodb.AttributeType.STRING),
             removal_policy=RemovalPolicy.DESTROY,
         )
 
@@ -86,5 +87,5 @@ class CdkStackStorageDynamoDB(Stack):
             "DynamoDBTableARN",
             value=self.table.table_arn,
             description="ARN of the DynamoDB table",
-            export_name="DynamoDBTableARN"
+            export_name="DynamoDBTableARN{}".format(self.deployment_environment)
         )

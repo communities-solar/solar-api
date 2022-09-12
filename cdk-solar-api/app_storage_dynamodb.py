@@ -1,26 +1,27 @@
 #!/usr/bin/env python3
+import os
 import aws_cdk as cdk
 
-import add_tags
+import global_configurations
 from cdk_storage.cdk_stack_dynamodb import CdkStackStorageDynamoDB
 
-
-DEPLOYMENT_VERSION = "v1"
-DEPLOYMENT_ENVIRONMENT = "dev"
-NAME_PREFIX = "solar-{}-".format(DEPLOYMENT_ENVIRONMENT)
-MAIN_RESOURCES_NAME = "solar-api"
 
 app = cdk.App()
 
 storage_stack = CdkStackStorageDynamoDB(
     app,
-    "{}-stack-storage-dynamodb-cdk".format(MAIN_RESOURCES_NAME),
-    NAME_PREFIX,
-    MAIN_RESOURCES_NAME,
-    DEPLOYMENT_ENVIRONMENT,
-    DEPLOYMENT_VERSION,
+    "{}-{}-stack-storage-dynamodb-cdk".format(global_configurations.DEPLOYMENT_ENVIRONMENT, global_configurations.MAIN_RESOURCES_NAME),
+    global_configurations.NAME_PREFIX,
+    global_configurations.MAIN_RESOURCES_NAME,
+    global_configurations.DEPLOYMENT_ENVIRONMENT,
+    global_configurations.DEPLOYMENT_VERSION,
+    env={
+        "account": os.environ["CDK_DEFAULT_ACCOUNT"], 
+        "region": os.environ["CDK_DEFAULT_REGION"]
+    },
+    description="Stack for Storage (DynamoDB) for {} solution".format(global_configurations.MAIN_RESOURCES_NAME),
 )
 
-add_tags.add_tags_to_stack(storage_stack)
+global_configurations.add_tags_to_stack(storage_stack)
 
 app.synth()
