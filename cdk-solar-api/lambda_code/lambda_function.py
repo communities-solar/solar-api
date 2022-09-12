@@ -4,9 +4,15 @@ import os
 import json
 import boto3
 
+# Own imports
+import api_return_format
+import rds_helpers
+import dynamodb_helpers
+
 # External dependencies imports (from lambda layer)
 from aws_lambda_powertools.utilities import parameters
 import mysql.connector
+
 
 # Configure logging
 LOG = logging.getLogger()
@@ -16,74 +22,23 @@ LOG.setLevel(logging.INFO)
 TABLE_NAME = os.environ.get("TABLE_NAME")
 RDS_HOST = os.environ.get("RDS_HOST")
 RDS_DATABASE = os.environ.get("RDS_DATABASE")
-SECRET_NAME = os.environ.get("SECRET_NAME")
+RDS_SECRET_NAME = os.environ.get("RDS_SECRET_NAME")
+API_SECRET_NAME = os.environ.get("API_SECRET_NAME")
 
 # Configure AWS resources
 dynamodb_resource = boto3.resource("dynamodb")
-table = dynamodb_resource.Table(TABLE_NAME)
-rds_secret = json.loads(parameters.get_secret(SECRET_NAME))
+dynamodb_table_resource = dynamodb_resource.Table(TABLE_NAME)
+rds_secret = json.loads(parameters.get_secret(RDS_SECRET_NAME))
+api_secret = json.loads(parameters.get_secret(API_SECRET_NAME))
+
 
 # Load RDS connector
-mydb = mysql.connector.connect(
+mydb_connector = mysql.connector.connect(
     host=RDS_HOST,
     user=rds_secret["username"],
     password=rds_secret["password"],
     database=RDS_DATABASE,
 )
-
-
-
-def get_return_format(status_code, body):
-    """
-    Function that returns the required response for the lambda function.
-    :param status_code: int --> status code for the REST API response (Ex: 200, 400, ...).
-    :param body: string --> Response body for the REST API (Ex: "Missing body parameter").
-    """
-    return {
-        "statusCode": status_code,
-        "body": body
-    }
-
-
-def read_lead_from_id(event, lead_id):
-    """
-    Function to read a lead row from lead_id information.
-    :param lead_id: identifier for the lead (str)
-    :return: lead_id_json structure with result (JSON) or None.
-    """
-    try:
-        # Create cursor for DB functionality
-        cursor = mydb.cursor()
-    
-        # Execute main query for leads
-        cursor.execute("SELECT * FROM solar_db.leads_table WHERE lead_id='{}'".format(lead_id))
-        
-        # Get one result (as there are never lead_id duplicates)
-        query_result = cursor.fetchone()
-        print("query_result is :", query_result)
-        
-        # Validate query response to be not None (that lead_id exists)
-        if query_result is not None:
-            col_names = cursor.column_names
-            json_response = {}
-            for i in range(len(col_names)):
-                json_response[col_names[i]] = query_result[i]
-        else:
-            json_response = {
-                "message": "There was not a match for the query.",
-                "details": "Server unable to get request due to wrong query (lead_id)."}
-        print("json_response is: ", json_response)
-
-        return get_return_format(200, json.dumps(json_response, indent=2, default=str))
-    except mysql.connector.Error as e:
-        error_message = "Error reading data from MySQL table: ", e
-        print(error_message)
-        return get_return_format(400, json.dumps(error_message, indent=2, default=str))
-
-
-def create_lead(event):
-    # TODO: for future development when leads_are going to be created through API calls
-    pass
 
 
 def lambda_handler(event, context):
@@ -102,16 +57,44 @@ def lambda_handler(event, context):
         supplier_id_validation = "supplier_id" in event["queryStringParameters"]
         agent_id_validation = "agent_id" in event["queryStringParameters"]
 
+        # TODO: add username / password authentication
+
         if (username_validation and password_validation and lead_id_validation and supplier_id_validation and agent_id_validation):
+            agent_id = event["queryStringParameters"]["agent_id"]
+            supplier_id = event["queryStringParameters"]["supplier_id"]
             lead_id = event["queryStringParameters"]["lead_id"]
-            # TODO: add validation to lead_id constraints!!!
 
-            return read_lead_from_id(event, lead_id)
+            api_final_result =  rds_helpers.read_lead_from_id(event, mydb_connector, lead_id)
+            print("api_final_result status code is : {}".format(api_final_result["statusCode"]) )
 
+            if api_final_result["statusCode"] == 200:
+                # Add logs of successful request details to dynamodb table
+                dynamodb_response = dynamodb_helpers.create_update_lead_information(
+                    dynamodb_table_resource,
+                    agent_id,
+                    lead_id,
+                    supplier_id,
+                    "successful",
+                    None,
+                )
+                print("dynamodb_response for request info is : {}".format(dynamodb_response))
+
+                return api_final_result
+
+    # Add logs of failure request details to dynamodb table
+    dynamodb_response = dynamodb_helpers.create_update_lead_information(
+        dynamodb_table_resource,
+        None,
+        None,
+        None,
+        "failure",
+        "The request to the endpoint did not contain all the necessary correct query parameters."
+    )
+    print("dynamodb_response for request info is : {}".format(dynamodb_response))
 
     # If a validation fails, return usage explanation message (how to call API)
     return_usage_dict = {
         "instructions": "Please call this endpoint as the <type_usage> indicates...",
         "read_usage": "?username=<username>&password=<password>&supplier_id=<supplier_id>&lead_id=<lead_id>&agent_id=<agent_id>",
     }
-    return get_return_format(200, json.dumps(return_usage_dict, indent=2, default=str))
+    return api_return_format.get_return_format(200, json.dumps(return_usage_dict, indent=2, default=str))

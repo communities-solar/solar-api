@@ -58,11 +58,13 @@ class CdkStackComputeApiLambda(Stack):
         self.rds_host = Fn.import_value("RDSHost{}".format(self.deployment_environment))
         self.rds_db_name = Fn.import_value("RDSDBName{}".format(self.deployment_environment))
         self.secret_name_for_rds_credentials = Fn.import_value("SecretNameForRDSCredentials{}".format(self.deployment_environment))
+        self.secret_name_for_api_credentials = Fn.import_value("SecretNameForAPICredentials{}".format(self.deployment_environment))
 
         print("Loaded <table_arn> value from other stack output is: ", self.table_arn)
         print("Loaded <rds_host> value from other stack output is: ", self.rds_host)
         print("Loaded <rds_db_name> value from other stack output is: ", self.rds_db_name)
         print("Loaded <secret_name_for_rds_credentials> value from other stack output is: ", self.secret_name_for_rds_credentials)
+        print("Loaded <secret_name_for_api_credentials> value from other stack output is: ", self.secret_name_for_api_credentials)
 
 
     def create_policy_statement_for_lambda_to_dynamodb(self):
@@ -177,7 +179,8 @@ class CdkStackComputeApiLambda(Stack):
                 "TABLE_NAME": "{}{}-Table".format(self.name_prefix, self.main_resources_name),
                 "RDS_HOST": self.rds_host,
                 "RDS_DATABASE": self.rds_db_name,
-                "SECRET_NAME": self.secret_name_for_rds_credentials,
+                "RDS_SECRET_NAME": self.secret_name_for_rds_credentials,
+                "API_SECRET_NAME": self.secret_name_for_api_credentials,
             },
             description="Lambda for {} functionalities (connects with dynamodb to manage leads).".format(self.main_resources_name),
             layers=[self.lambda_layer],

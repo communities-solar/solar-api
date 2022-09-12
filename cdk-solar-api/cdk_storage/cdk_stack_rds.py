@@ -35,6 +35,7 @@ class CdkStackStorageRDS(Stack):
         self.custom_database_name = "solar_db"
 
         # Secrets Manager Secret creation
+        self.create_secret_for_api_authentication()
         self.create_secret_for_rds_credentials()
 
         # RDS creation
@@ -46,15 +47,36 @@ class CdkStackStorageRDS(Stack):
         self.show_cloudformation_outputs()
 
 
+    def create_secret_for_api_authentication(self):
+        """
+        Method to create an AWS Secrets Manager Secret for API authentication.
+        """
+        # Create secret with auto-generated password (for DB security credentials)
+        self.api_secret = aws_secretsmanager.Secret(
+            self,
+            id="{}-SecretAPICredentials".format(self.construct_id),
+            secret_name="{}{}-SecretAPICredentials".format(self.name_prefix, self.main_resources_name),
+            description="Secret for the RDS of the {} stack.".format(self.main_resources_name),
+            generate_secret_string=aws_secretsmanager.SecretStringGenerator(
+                secret_string_template=json.dumps(
+                    {
+                        "username": "solar",
+                    }
+                ),
+                generate_string_key="password",
+                exclude_characters="/@'\" .%;?:&=+$,<>"
+            )
+        )
+
     def create_secret_for_rds_credentials(self):
         """
-        Method to create an AWS Secrets Manager Secret.
+        Method to create an AWS Secrets Manager Secret for RDS credentials.
         """
         # Create secret with auto-generated password (for DB security credentials)
         self.database_secret = aws_secretsmanager.Secret(
             self,
-            id="{}-Secret".format(self.construct_id),
-            secret_name="{}{}-Secret".format(self.name_prefix, self.main_resources_name),
+            id="{}-SecretRDSCredentials".format(self.construct_id),
+            secret_name="{}{}-SecretRDSCredentials".format(self.name_prefix, self.main_resources_name),
             description="Secret for the RDS of the {} stack.".format(self.main_resources_name),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
@@ -154,7 +176,22 @@ class CdkStackStorageRDS(Stack):
 
         CfnOutput(
             self,
-            "SecretName",
+            "APICredentialsSecretName",
+            value=self.api_secret.secret_name,
+            description="Name of the AWS Secret for the APICredentials credentials",
+            export_name="SecretNameForAPICredentials{}".format(self.deployment_environment)
+        )
+
+        CfnOutput(
+            self,
+            "APICredentialsSecretFullARN",
+            value=self.api_secret.secret_full_arn,
+            description="Full ARN of the AWS Secret for the API credentials",
+        )
+
+        CfnOutput(
+            self,
+            "RDSSecretName",
             value=self.database_secret.secret_name,
             description="Name of the AWS Secret for the RDS credentials",
             export_name="SecretNameForRDSCredentials{}".format(self.deployment_environment)
@@ -162,14 +199,7 @@ class CdkStackStorageRDS(Stack):
 
         CfnOutput(
             self,
-            "SecretARN",
-            value=self.database_secret.secret_arn,
-            description="ARN of the AWS Secret for the RDS credentials",
-        )
-
-        CfnOutput(
-            self,
-            "SecretFullARN",
+            "RDSSecretFullARN",
             value=self.database_secret.secret_full_arn,
             description="Full ARN of the AWS Secret for the RDS credentials",
         )
