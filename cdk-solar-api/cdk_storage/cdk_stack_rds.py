@@ -64,7 +64,7 @@ class CdkStackStorageRDS(Stack):
                     }
                 ),
                 generate_string_key="password",
-                exclude_characters="/@'\" .%;?:&=+$,<>"
+                exclude_characters="/@'\" .%;?:&=+$,<>}{!`[]|-\\*)(#^~"
             )
         )
 

@@ -57,29 +57,31 @@ def lambda_handler(event, context):
         supplier_id_validation = "supplier_id" in event["queryStringParameters"]
         agent_id_validation = "agent_id" in event["queryStringParameters"]
 
-        # TODO: add username / password authentication
-
         if (username_validation and password_validation and lead_id_validation and supplier_id_validation and agent_id_validation):
             agent_id = event["queryStringParameters"]["agent_id"]
             supplier_id = event["queryStringParameters"]["supplier_id"]
             lead_id = event["queryStringParameters"]["lead_id"]
+            api_username = event["queryStringParameters"]["username"]
+            api_password = event["queryStringParameters"]["password"]
 
-            api_final_result =  rds_helpers.read_lead_from_id(event, mydb_connector, lead_id)
-            print("api_final_result status code is : {}".format(api_final_result["statusCode"]) )
+            # Authentication for Solar API (retrieved from secret)
+            if api_secret["username"] == api_username and api_secret["password"] == api_password:
+                api_final_result =  rds_helpers.read_lead_from_id(event, mydb_connector, lead_id)
+                print("api_final_result status code is : {}".format(api_final_result["statusCode"]) )
 
-            if api_final_result["statusCode"] == 200:
-                # Add logs of successful request details to dynamodb table
-                dynamodb_response = dynamodb_helpers.create_update_lead_information(
-                    dynamodb_table_resource,
-                    agent_id,
-                    lead_id,
-                    supplier_id,
-                    "successful",
-                    None,
-                )
-                print("dynamodb_response for request info is : {}".format(dynamodb_response))
+                if api_final_result["statusCode"] == 200:
+                    # Add logs of successful request details to dynamodb table
+                    dynamodb_response = dynamodb_helpers.create_update_lead_information(
+                        dynamodb_table_resource,
+                        agent_id,
+                        lead_id,
+                        supplier_id,
+                        "successful",
+                        None,
+                    )
+                    print("dynamodb_response for request info is : {}".format(dynamodb_response))
 
-                return api_final_result
+                    return api_final_result
 
     # Add logs of failure request details to dynamodb table
     dynamodb_response = dynamodb_helpers.create_update_lead_information(
