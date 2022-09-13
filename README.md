@@ -18,7 +18,7 @@ This diagram illustrates how the CloudFormation stacks and Outputs/Inputs are re
 
 To deploy the CDK solutions, you must follow the steps on the `important_commands.sh` and deploy the needed stack. <br>
 
-[a relative link](important_commands.sh)
+[./important_commands.sh](important_commands.sh)
 
 Keep in mind that to control the deployment `ENVIRONMENT`, by default is `dev`, but to change to `prod`, configure the environment variable as follows:
 
