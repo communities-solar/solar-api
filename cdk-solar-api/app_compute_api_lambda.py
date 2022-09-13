@@ -10,7 +10,7 @@ app = cdk.App()
 
 compute_stack = CdkStackComputeApiLambda(
     app,
-    "{}{}-stack-compute-api-lambda-cdk".format(global_configurations.DEPLOYMENT_ENVIRONMENT, global_configurations.MAIN_RESOURCES_NAME),
+    "{}-{}-stack-compute-api-lambda-cdk".format(global_configurations.DEPLOYMENT_ENVIRONMENT, global_configurations.MAIN_RESOURCES_NAME),
     global_configurations.NAME_PREFIX,
     global_configurations.MAIN_RESOURCES_NAME,
     global_configurations.DEPLOYMENT_ENVIRONMENT,
