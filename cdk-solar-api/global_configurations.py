@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import aws_cdk as cdk
 
+# Build-in imports
 import os
-import sys
+import datetime
 
 # Get deployment environment from env variable or default to development
 environment = os.getenv("ENVIRONMENT", "dev").lower()
@@ -19,9 +20,14 @@ def add_tags_to_stack(stack):
     Simple function to add custom tags to stack in a centralized (equal) approach.
     """
 
+    # Obtain current datetime for timestamp record
+    now = datetime.datetime.now()
+    datetime_formatted = now.strftime("%Y-%m-%d")
+
     cdk.Tags.of(stack).add("Environment", DEPLOYMENT_ENVIRONMENT)
     cdk.Tags.of(stack).add("Author", AUTHOR)
     cdk.Tags.of(stack).add("Identifier", MAIN_RESOURCES_NAME)
+    cdk.Tags.of(stack).add("LastDeploymentDate", datetime_formatted)
 
 
 def validate_correct_deployment_environment(environment):

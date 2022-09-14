@@ -29,6 +29,7 @@ class CdkStackStorageRDS(Stack):
         multi_az: bool,
         delete_automated_backups: bool,
         backup_retention: Duration,
+        custom_database_name: str,
         **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -47,7 +48,7 @@ class CdkStackStorageRDS(Stack):
         self.backup_retention = backup_retention
 
         # Name of the database
-        self.custom_database_name = "solar_db"
+        self.custom_database_name = custom_database_name
 
         # Secrets Manager Secret creation
         self.create_secret_for_api_authentication()
@@ -71,7 +72,7 @@ class CdkStackStorageRDS(Stack):
             self,
             id="{}-SecretAPICredentials".format(self.construct_id),
             secret_name="{}{}-SecretAPICredentials".format(self.name_prefix, self.main_resources_name),
-            description="Secret for the RDS of the {} stack.".format(self.main_resources_name),
+            description="Secret for the RDS of the {} stack in ({}) environment".format(self.main_resources_name, self.deployment_environment),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {
@@ -92,7 +93,7 @@ class CdkStackStorageRDS(Stack):
             self,
             id="{}-SecretRDSCredentials".format(self.construct_id),
             secret_name="{}{}-SecretRDSCredentials".format(self.name_prefix, self.main_resources_name),
-            description="Secret for the RDS of the {} stack.".format(self.main_resources_name),
+            description="Secret for the RDS of the {} stack in ({}) environment".format(self.main_resources_name, self.deployment_environment),
             generate_secret_string=aws_secretsmanager.SecretStringGenerator(
                 secret_string_template=json.dumps(
                     {
@@ -124,7 +125,7 @@ class CdkStackStorageRDS(Stack):
         self.db_security_group = aws_ec2.SecurityGroup(
             self,
             id="{}-SG".format(self.construct_id),
-            description="Security group for access to RDS related to {} solution.".format(self.main_resources_name),
+            description="SG for access to RDS of {} solution in ({}) environment".format(self.main_resources_name, self.deployment_environment),
             allow_all_outbound=True,
             vpc=self.default_vpc,
         )

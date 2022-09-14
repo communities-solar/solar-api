@@ -101,7 +101,7 @@ class CdkStackComputeApiLambda(Stack):
             self,
             id="{}-Role".format(self.construct_id),
             role_name="{}{}-Role".format(self.name_prefix, self.main_resources_name),
-            description="Role for {} stack".format(self.main_resources_name),
+            description="Role for {} stack in ({}) environment".format(self.main_resources_name, self.deployment_environment),
             assumed_by=aws_iam.ServicePrincipal("lambda.amazonaws.com"),
             managed_policies=[aws_iam.ManagedPolicy.from_aws_managed_policy_name("service-role/AWSLambdaBasicExecutionRole")],
         )
@@ -153,7 +153,7 @@ class CdkStackComputeApiLambda(Stack):
                 "RDS_SECRET_NAME": self.secret_name_for_rds_credentials,
                 "API_SECRET_NAME": self.secret_name_for_api_credentials,
             },
-            description="Lambda for {} functionalities (connects with rds to read leads and record API calls).".format(self.main_resources_name),
+            description="Lambda for {} functionalities (connects with rds to read leads and record API calls) in ({}) environment.".format(self.main_resources_name,self.deployment_environment),
             layers=[self.lambda_layer],
             role=self.lambda_role,
             timeout=Duration.minutes(1),
@@ -172,7 +172,7 @@ class CdkStackComputeApiLambda(Stack):
             self,
             id="{}-RestApi".format(self.construct_id),
             rest_api_name="{}{}".format(self.name_prefix, self.main_resources_name),
-            description="API to create/read leads for the {} stack".format(self.main_resources_name),
+            description="API to create/read leads for the {} stack for ({}) environment".format(self.main_resources_name, self.deployment_environment),
             handler=self.lambda_function,
             default_cors_preflight_options=aws_apigateway.CorsOptions(
                 allow_origins=aws_apigateway.Cors.ALL_ORIGINS,

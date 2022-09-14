@@ -20,6 +20,7 @@ if global_configs.DEPLOYMENT_ENVIRONMENT == "dev":
     multi_az = False
     delete_automated_backups = True
     backup_retention = cdk.Duration.days(0)
+    custom_database_name = "solar_db"
 elif global_configs.DEPLOYMENT_ENVIRONMENT == "prod":
     instance_type_class = cdk.aws_ec2.InstanceClass.BURSTABLE4_GRAVITON
     instance_type_size = cdk.aws_ec2.InstanceSize.LARGE
@@ -28,6 +29,7 @@ elif global_configs.DEPLOYMENT_ENVIRONMENT == "prod":
     multi_az = True
     delete_automated_backups = False
     backup_retention = cdk.Duration.days(2)
+    custom_database_name = "solar_db"
 
 app = cdk.App()
 storage_stack = CdkStackStorageRDS(
@@ -44,6 +46,7 @@ storage_stack = CdkStackStorageRDS(
     multi_az,
     delete_automated_backups,
     backup_retention,
+    custom_database_name,
     env={
         "account": os.environ["CDK_DEFAULT_ACCOUNT"], 
         "region": os.environ["CDK_DEFAULT_REGION"]
