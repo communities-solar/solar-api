@@ -22,14 +22,29 @@ class CdkStackStorageRDS(Stack):
         main_resources_name: str,
         deployment_environment: str,
         deployment_version: str,
+        instance_type_class: aws_ec2.InstanceClass,
+        instance_type_size: aws_ec2.InstanceSize,
+        deletion_protection: bool,
+        removal_policy: RemovalPolicy,
+        multi_az: bool,
+        delete_automated_backups: bool,
+        backup_retention: Duration,
         **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+        # Load parameters to class attributes
         self.construct_id = construct_id
         self.name_prefix = name_prefix
         self.main_resources_name = main_resources_name
         self.deployment_environment = deployment_environment
         self.deployment_version = deployment_version
+        self.instance_type_class = instance_type_class
+        self.instance_type_size = instance_type_size
+        self.deletion_protection = deletion_protection
+        self.removal_policy = removal_policy
+        self.multi_az = multi_az
+        self.delete_automated_backups = delete_automated_backups
+        self.backup_retention = backup_retention
 
         # Name of the database
         self.custom_database_name = "solar_db"
@@ -131,11 +146,11 @@ class CdkStackStorageRDS(Stack):
             database_name=self.custom_database_name,
             engine=aws_rds.DatabaseInstanceEngine.MYSQL,
             credentials=aws_rds.Credentials.from_secret(self.database_secret),
-            deletion_protection=False,
-            removal_policy=RemovalPolicy.DESTROY,
-            instance_type=aws_ec2.InstanceType.of(aws_ec2.InstanceClass.BURSTABLE3, aws_ec2.InstanceSize.MICRO),
+            deletion_protection=self.deletion_protection,
+            removal_policy=self.removal_policy,
+            instance_type=aws_ec2.InstanceType.of(self.instance_type_class, self.instance_type_size),
             instance_identifier="{}-{}".format(self.deployment_environment, self.main_resources_name),
-            multi_az=False,
+            multi_az=self.multi_az,
             publicly_accessible=True,
             security_groups=[self.db_security_group],
             vpc=self.default_vpc,
@@ -143,9 +158,9 @@ class CdkStackStorageRDS(Stack):
                 subnet_type=aws_ec2.SubnetType.PUBLIC
             ),
             iam_authentication=False,
-            delete_automated_backups=True,
+            delete_automated_backups=self.delete_automated_backups,
             auto_minor_version_upgrade=True,
-            backup_retention=Duration.days(0),
+            backup_retention=self.backup_retention,
         )
 
 

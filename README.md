@@ -28,7 +28,7 @@ export ENVIRONMENT="prod"
 
 ### CDK Deployment example
 
-This would be an example of a development deployment for the Storage-DynamoDB Stack:
+This would be an example of a development deployment for the Storage-RDS Stack:
 
 ```bash
 # Go to the "cdk-solar-api" directory:
@@ -42,15 +42,15 @@ source .venv/bin/activate || echo "Make sure that virtual env exists"
 export ENVIRONMENT="dev"
 
 # To see changes before deployment (changeset):
-cdk synthesize --app "python3 app_storage_dynamodb.py"
+cdk synthesize --app "python3 app_storage_rds.py"
 
-# Deploy the stack for DynamoDB storage solution
-cdk deploy --app "python3 app_storage_dynamodb.py"
+# Deploy the stack for RDS storage solution
+cdk deploy --app "python3 app_storage_rds.py"
 ```
 
 ### CDK Deletion example (Danger Zone)
 
-This would be an example of how to delete the Storage-DynamoDB Stack:
+This would be an example of how to delete the Storage-RDS Stack:
 
 ```bash
 # Go to the "cdk-solar-api" directory:
@@ -65,7 +65,7 @@ export ENVIRONMENT="dev"
 
 # Destroy the stack if it needs to be deleted
 # (WARNING): this command will delete all resources!!!
-cdk destroy --app "python3 app_storage_dynamodb.py"
+cdk destroy --app "python3 app_storage_rds.py"
 ```
 
 ## Extra Notes and Remarks

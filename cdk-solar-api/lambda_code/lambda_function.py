@@ -7,7 +7,6 @@ import boto3
 # Own imports
 import api_return_format
 import rds_helpers
-import dynamodb_helpers
 
 # External dependencies imports (from lambda layer)
 from aws_lambda_powertools.utilities import parameters
@@ -18,16 +17,14 @@ import mysql.connector
 LOG = logging.getLogger()
 LOG.setLevel(logging.INFO)
 
-# Get environment variables for DynamoDB, RDS and Secrets
+# Get environment variables for RDS and Secrets
 TABLE_NAME = os.environ.get("TABLE_NAME")
 RDS_HOST = os.environ.get("RDS_HOST")
 RDS_DATABASE = os.environ.get("RDS_DATABASE")
 RDS_SECRET_NAME = os.environ.get("RDS_SECRET_NAME")
 API_SECRET_NAME = os.environ.get("API_SECRET_NAME")
 
-# Configure AWS resources
-dynamodb_resource = boto3.resource("dynamodb")
-dynamodb_table_resource = dynamodb_resource.Table(TABLE_NAME)
+# Fetch secrets from AWS Secrets
 rds_secret = json.loads(parameters.get_secret(RDS_SECRET_NAME))
 api_secret = json.loads(parameters.get_secret(API_SECRET_NAME))
 
@@ -66,37 +63,37 @@ def lambda_handler(event, context):
 
             # Authentication for Solar API (retrieved from secret)
             if api_secret["username"] == api_username and api_secret["password"] == api_password:
-                api_final_result =  rds_helpers.read_lead_from_id(event, mydb_connector, lead_id)
+                api_final_result =  rds_helpers.read_lead_from_id(mydb_connector, lead_id)
                 print("api_final_result status code is : {}".format(api_final_result["statusCode"]) )
 
                 if api_final_result["statusCode"] == 200:
-                    # Add logs of successful request details to dynamodb table
-                    dynamodb_response = dynamodb_helpers.create_update_lead_information(
-                        dynamodb_table_resource,
+                    # Add logs of successful request details to rds records table
+                    rds_insert_request_response = rds_helpers.create_update_api_request_summary(
+                        mydb_connector,
                         agent_id,
                         lead_id,
                         supplier_id,
                         "successful",
                         None,
                     )
-                    print("dynamodb_response for request info is : {}".format(dynamodb_response))
+                    print("rds_insert_request_response for request info is : {}".format(rds_insert_request_response))
 
                     return api_final_result
 
-    # Add logs of failure request details to dynamodb table
-    dynamodb_response = dynamodb_helpers.create_update_lead_information(
-        dynamodb_table_resource,
+    # Add logs of failure request details to rds records table
+    rds_insert_request_response = rds_helpers.create_update_api_request_summary(
+        mydb_connector,
         None,
         None,
         None,
         "failure",
         "The request to the endpoint did not contain all the necessary correct query parameters."
     )
-    print("dynamodb_response for request info is : {}".format(dynamodb_response))
+    print("rds_insert_request_response for request info is : {}".format(rds_insert_request_response))
 
     # If a validation fails, return usage explanation message (how to call API)
     return_usage_dict = {
-        "instructions": "Please call this endpoint as the <type_usage> indicates...",
-        "read_usage": "?username=<username>&password=<password>&supplier_id=<supplier_id>&lead_id=<lead_id>&agent_id=<agent_id>",
+        "instructions": "Please call this endpoint as the <usage> indicates...",
+        "usage": "?username=username&password=password&supplier_id=supplier_id&agent_id=agent_id&lead_id=lead_id",
     }
     return api_return_format.get_return_format(200, json.dumps(return_usage_dict, indent=2, default=str))

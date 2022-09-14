@@ -62,12 +62,6 @@ cdk bootstrap
 export ENVIRONMENT="dev"
 export ENVIRONMENT="prod"
 
-# Storage Stack DynamoDB
-cdk synthesize --app "python3 app_storage_dynamodb.py"
-cdk diff --app "python3 app_storage_dynamodb.py"
-cdk deploy --app "python3 app_storage_dynamodb.py"
-cdk destroy --app "python3 app_storage_dynamodb.py"
-
 # Storage Stack RDS
 cdk synthesize --app "python3 app_storage_rds.py"
 cdk diff --app "python3 app_storage_rds.py"
