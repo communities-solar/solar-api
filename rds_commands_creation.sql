@@ -59,6 +59,7 @@ CREATE TABLE `solar_db`.`api_records_table` (
   `agent_id` VARCHAR(50) NULL,
   `supplier_id` VARCHAR(50) NULL,
   `result` VARCHAR(1024) NULL,
+  `source_ip` VARCHAR(128) NULL,
   `extra_information` VARCHAR(1024) NULL,
   PRIMARY KEY (`pk_api_records`),
   UNIQUE INDEX `pk_api_records_UNIQUE` (`pk_api_records` ASC) VISIBLE);
