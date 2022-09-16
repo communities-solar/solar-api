@@ -47,8 +47,10 @@ def lambda_handler(event, context):
     LOG.info("lambda_handler: event is {}".format(event))
 
     # Obtain source IP address (X-Forwarded-For header) for client's info
-    x_forwarded_for_value = event["headers"]["X-Forwarded-For"]
-    print("header <x_forwarded_for_value> is: {}".format(x_forwarded_for_value))
+    x_forwarded_for_values = event["headers"]["X-Forwarded-For"]
+    print("header <x_forwarded_for_values> is: {}".format(x_forwarded_for_values))
+    x_forwarded_for_source_ip = x_forwarded_for_values.split(",")[0]
+    x_forwarded_for_aws_ip = x_forwarded_for_values.split(",")[1]
 
     # Default ids
     agent_id = None
@@ -114,13 +116,14 @@ def lambda_handler(event, context):
                             supplier_id,
                             "successful",
                             None,
-                            x_forwarded_for_value,
+                            x_forwarded_for_source_ip,
+                            x_forwarded_for_aws_ip,
                         )
                         print("rds_insert_request_response for request info is : {}".format(rds_insert_request_response))
                         return api_final_result
                     else:
                         # Response when it has a non-existent lead_id
-                        record_error_message = "Wrong lead_id {}".format(api_final_result)
+                        record_error_message = "Wrong lead_id {}".format(api_final_result["body"])
                 else:
                     # Response when there is an error on the username and/or password
                     record_error_message = "Wrong username and/or password"
@@ -142,7 +145,8 @@ def lambda_handler(event, context):
         supplier_id,
         "failure",
         record_error_message,
-        x_forwarded_for_value,
+        x_forwarded_for_source_ip,
+        x_forwarded_for_aws_ip,
     )
     print("rds_insert_request_response for request info is : {}".format(rds_insert_request_response))
 

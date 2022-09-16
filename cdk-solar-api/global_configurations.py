@@ -12,7 +12,7 @@ DEPLOYMENT_VERSION = "v1"
 DEPLOYMENT_ENVIRONMENT = environment
 NAME_PREFIX = "{}-".format(DEPLOYMENT_ENVIRONMENT)
 MAIN_RESOURCES_NAME = "solar-api"
-AUTHOR = "Lloyd Spencer and Carlos Espinosa"
+AUTHORS = "Lloyd Spencer and Carlos Espinosa"
 
 
 def add_tags_to_stack(stack):
@@ -25,7 +25,7 @@ def add_tags_to_stack(stack):
     datetime_formatted = now.strftime("%Y-%m-%d")
 
     cdk.Tags.of(stack).add("Environment", DEPLOYMENT_ENVIRONMENT)
-    cdk.Tags.of(stack).add("Author", AUTHOR)
+    cdk.Tags.of(stack).add("Authors", AUTHORS)
     cdk.Tags.of(stack).add("Identifier", MAIN_RESOURCES_NAME)
     cdk.Tags.of(stack).add("LastDeploymentDate", datetime_formatted)
 

@@ -50,7 +50,7 @@ def read_lead_from_id(mysql_connector, lead_id):
         return api_return_format.get_return_format(400, json.dumps(error_message, indent=2, default=str))
 
 
-def create_update_api_request_summary(mysql_connector, agent_id, lead_id, supplier_id, result, extra_information, source_ip):
+def create_update_api_request_summary(mysql_connector, agent_id, lead_id, supplier_id, result, extra_information, source_ip, internal_aws_ip):
     """
     Function to create an API request information summary to the records table (logs at API).
     :param mysql_connector: mysql-connector for RDS queries.
@@ -60,6 +60,7 @@ def create_update_api_request_summary(mysql_connector, agent_id, lead_id, suppli
     :param result: result of RDS query (string).
     :param extra_information: reason for failure (string).
     :param source_ip: IP address of client (string).
+    :param internal_aws_ip: IP address of client (string).
     """
     # Obtain current datetime for timestamp record
     now = datetime.datetime.now()
@@ -71,8 +72,8 @@ def create_update_api_request_summary(mysql_connector, agent_id, lead_id, suppli
 
         # Create query structures for inserting API requests to the records table
         add_record_query_template = ("INSERT INTO `solar_db`.`api_records_table` "
-                    "(`request_date_time`, `lead_id`, `agent_id`, `supplier_id`, `result`, `extra_information`, `source_ip`) "
-                    "VALUES (%s, %s, %s, %s, %s, %s, %s)")
+                    "(`request_date_time`, `lead_id`, `agent_id`, `supplier_id`, `result`, `extra_information`, `source_ip`, `internal_aws_ip`) "
+                    "VALUES (%s, %s, %s, %s, %s, %s, %s, %s)")
 
         record_data_to_add = (
             datetime_formatted,
@@ -81,7 +82,8 @@ def create_update_api_request_summary(mysql_connector, agent_id, lead_id, suppli
             supplier_id,
             result,
             extra_information,
-            source_ip
+            source_ip,
+            internal_aws_ip
         )
 
         # Insert the request based on given information
@@ -133,6 +135,7 @@ if __name__ == "__main__":
         None,
         "failure",
         "The request to the endpoint did not contain all the necessary correct query parameters.",
-        "1.2.3.4"
+        "1.2.3.4",
+        "5.6.7.8"
     )
     print("rds_insert_request_response for request info is : {}".format(rds_insert_request_response))

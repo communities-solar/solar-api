@@ -21,6 +21,7 @@ if global_configs.DEPLOYMENT_ENVIRONMENT == "dev":
     delete_automated_backups = True
     backup_retention = cdk.Duration.days(0)
     custom_database_name = "solar_db"
+    enable_performance_insights = False
 elif global_configs.DEPLOYMENT_ENVIRONMENT == "prod":
     instance_type_class = cdk.aws_ec2.InstanceClass.BURSTABLE4_GRAVITON
     instance_type_size = cdk.aws_ec2.InstanceSize.LARGE
@@ -30,6 +31,7 @@ elif global_configs.DEPLOYMENT_ENVIRONMENT == "prod":
     delete_automated_backups = False
     backup_retention = cdk.Duration.days(2)
     custom_database_name = "solar_db"
+    enable_performance_insights = True
 
 app = cdk.App()
 storage_stack = CdkStackStorageRDS(
@@ -47,11 +49,12 @@ storage_stack = CdkStackStorageRDS(
     delete_automated_backups,
     backup_retention,
     custom_database_name,
+    enable_performance_insights,
     env={
         "account": os.environ["CDK_DEFAULT_ACCOUNT"], 
         "region": os.environ["CDK_DEFAULT_REGION"]
     },
-    description="Stack for Storage (RDS) for {} solution".format(global_configs.MAIN_RESOURCES_NAME),
+    description="Stack for Storage (RDS) for {} solution in {} environment".format(global_configs.MAIN_RESOURCES_NAME, global_configs.DEPLOYMENT_ENVIRONMENT),
 )
 global_configs.add_tags_to_stack(storage_stack)
 app.synth()

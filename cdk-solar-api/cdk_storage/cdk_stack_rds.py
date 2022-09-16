@@ -30,6 +30,7 @@ class CdkStackStorageRDS(Stack):
         delete_automated_backups: bool,
         backup_retention: Duration,
         custom_database_name: str,
+        enable_performance_insights: str,
         **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
@@ -46,6 +47,7 @@ class CdkStackStorageRDS(Stack):
         self.multi_az = multi_az
         self.delete_automated_backups = delete_automated_backups
         self.backup_retention = backup_retention
+        self.enable_performance_insights = enable_performance_insights
 
         # Name of the database
         self.custom_database_name = custom_database_name
@@ -162,6 +164,7 @@ class CdkStackStorageRDS(Stack):
             delete_automated_backups=self.delete_automated_backups,
             auto_minor_version_upgrade=True,
             backup_retention=self.backup_retention,
+            enable_performance_insights=self.enable_performance_insights
         )
 
 
