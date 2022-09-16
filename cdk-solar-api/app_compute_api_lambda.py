@@ -22,7 +22,7 @@ compute_stack = CdkStackComputeApiLambda(
         "account": os.environ["CDK_DEFAULT_ACCOUNT"], 
         "region": os.environ["CDK_DEFAULT_REGION"]
     },
-    description="Stack for Compute (API, Lambda) for {} solution".format(global_configs.MAIN_RESOURCES_NAME),
+    description="Stack for Compute (API, Lambda) for {} solution in {} environment".format(global_configs.MAIN_RESOURCES_NAME, global_configs.DEPLOYMENT_ENVIRONMENT),
 )
 global_configs.add_tags_to_stack(compute_stack)
 app.synth()
